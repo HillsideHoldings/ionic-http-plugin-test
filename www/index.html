@@ -33,7 +33,7 @@
 		<script src="js/app.js"></script>
 		<script type="text/javascript" src="js/jquery-3.1.1.js"></script>
 	</head>
-	<body ng-app="starter">
+	<body ng-app="starter" class="platform-ios platform-cordova platform-webview">
 
     <ion-pane>
 		<ion-header-bar class="bar-stable">
@@ -47,6 +47,7 @@
 				<button class="filesize" value="filesize" style="margin-top:10px;">File Size</button>
 				<button class="del" value="del" style="margin-top:10px;"> Delete File</button>
 				<button class="md5button" value="md5" style="margin-top:10px;">Show MD5</button>
+                <button class="abort" value="abort" style="margin-top:10px;">Abort</button>
 			</div>
 			<div>
 				<p style="margin-top: 30px;"><span>Downloaded:</span><span id="progress">0</span></p>

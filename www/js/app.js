@@ -24,6 +24,7 @@ angular.module('starter', ['ionic'])
 				$(".del").on("click", deleteFile);
 				$(".md5button").on("click", showMd5);
 				$(".filesize").on("click", filesize);
+				$(".abort").on("click", abortDownload);
 			});
 		});
 
@@ -31,20 +32,26 @@ angular.module('starter', ['ionic'])
 
 
 var APP_FOLDER = "AppForPlugins";
-//var SONG_URL = "https://traffic.libsyn.com/secure/mixergy/1.mp3";
-var SONG_URL = "https://secure-hwcdn.libsyn.com/p/6/2/3/6236f647b7714eba/1.mp3?c_id=7997049&expiration=1478822879&hwt=34eb10ebbfd67c097f5af5266deedf7f";
+var SONG_URL = "https://traffic.libsyn.com/secure/mixergy/1.mp3";
+//var SONG_URL = "https://secure-hwcdn.libsyn.com/p/6/2/3/6236f647b7714eba/1.mp3?c_id=7997049&expiration=1478822879&hwt=34eb10ebbfd67c097f5af5266deedf7f";
 var FILE_NAME = "1.mp3";
 
 var downloadInProgress = false;
 
+var fileTransfer;
+
 function startStopDownload() {
 
 	if (downloadInProgress) {
+		console.log("Download happening, so we'll abort.", downloadInProgress);
 		// stop download
 		downloadInProgress = false;
-		cordovaHTTP.abortDownload();
+		//cordovaHTTP.abortDownload();
+		fileTransfer.abort();
+		
 
 	} else {
+		console.log("New download request.", downloadInProgress);
 		// start download
 		startDownload(FILE_NAME);
 
@@ -56,6 +63,7 @@ function startDownload(filename) {
 
 	// check if file already exists then calculate its length
 	getFile(filename, false, function (fileEntry) {
+		console.log("File exists.", fileEntry);
 
 		fileEntry.getMetadata(
 				function (metadata) {
@@ -75,6 +83,7 @@ function startDownload(filename) {
 
 
 	}, function (err) {
+		console.log("File does not exist.", err);
 		// file does not exist so start a fresh download
 		startDownloadFrom(filename, 0);
 	});
@@ -90,42 +99,72 @@ function startDownloadFrom(filename, range) {
 		downloadInProgress = true;
 
 		var headers = {};
-		
+
 		if (range > 0) {
 			headers = {"Range": "bytes=" + range + "-"}
 		}
+
+		console.log("headers", headers);
+
+		fileTransfer = new FileTransfer();
+			
+		fileTransfer.onprogress = function(progress) {
+			$("#progress").text(progress.loaded);
+		};
 		
-		console.log(headers);
-		
-		cordovaHTTP.downloadFile(SONG_URL,
-				{},
-				headers,
+		fileTransfer.download(
+				SONG_URL,
 				fileEntry.toURL(),
-				true, // append download to file if exists else create new one
 				function (entry) {
+					console.log("download complete: " + entry.toURL());
 					downloadInProgress = false;
+				},
+				function (error) {
+					console.log("error", error);
+					downloadInProgress = false;
+				},
+				false,
+				{
+					headers: headers
+				}
+		);
 
-					// prints the filePath
-					alert("File is downloaded successfully at location:\n" + entry.fullPath);
-
-				}, function (response) {
-			// check if it is aborted
-			if (response.status == -1) {
-				// it is aborted
-				alert(response.error);
-			} else {
-				alert("Error in downloading file");
-			}
-			downloadInProgress = false;
-		}, function (resp) {
-			$("#progress").text(resp.progress);
-			$("#headers").text(JSON.stringify(resp.headers));
-		});
+//		cordovaHTTP.downloadFile(SONG_URL,
+//				{},
+//				headers,
+//				fileEntry.toURL(),
+//				true, // append download to file if exists else create new one
+//				function (entry) {
+//					downloadInProgress = false;
+//
+//					// prints the filePath
+//					alert("File is downloaded successfully at location:\n" + entry.fullPath);
+//
+//				}, function (response) {
+//			// check if it is aborted
+//			if (response.status == -1) {
+//				// it is aborted
+//				alert(response.error);
+//			} else {
+//				alert("Error in downloading file");
+//			}
+//			downloadInProgress = false;
+//		}, function (resp) {
+//			$("#progress").text(resp.progress);
+//			$("#headers").text(JSON.stringify(resp.headers));
+//		});
 
 	}, function (error) {
 		alert("Error in creating file in memory");
 	});
 
+}
+
+function abortDownload() {
+	// stop download
+	downloadInProgress = false;
+//	cordovaHTTP.abortDownload();
+	fileTransfer.abort();
 }
 
 
@@ -155,7 +194,7 @@ function removeFile(filename) {
 function showMd5() {
 	getFile(FILE_NAME, false, function (fileEntry) {
 
-		md5chksum.file(fileEntry, function (md5sum) {
+		md5chksum.file(fileEntry, function (md5sum) {  
 			$("#md5").text(md5sum);
 		}, function (error) {
 			$("#md5").text("Error-Message: " + error);
@@ -176,11 +215,18 @@ function getFile(filename, newIfMissing, success, error) {
 }
 
 function createAppDirectory(newIfMissing, success, fail) {
-	window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, function (rootDirEntry) {
+	//iOS version
+	window.resolveLocalFileSystemURL(cordova.file.documentsDirectory, function (rootDirEntry) {
 		rootDirEntry.getDirectory(APP_FOLDER, {create: newIfMissing}, function (dirEntry) {
 			success(dirEntry);
 		}, fail);
 	}, fail);
+	//Android version
+//	window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, function (rootDirEntry) {
+//		rootDirEntry.getDirectory(APP_FOLDER, {create: newIfMissing}, function (dirEntry) {
+//			success(dirEntry);
+//		}, fail);
+//	}, fail);
 }
 
 function filesize() {

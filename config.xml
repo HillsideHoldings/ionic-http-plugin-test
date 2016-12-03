@@ -9,6 +9,13 @@
     </author>
   <content src="index.html"/>
   <access origin="*"/>
+  <access origin="http://192.168.0.47:8100"/>
+  <access origin="cdvfile:*"/>
+  <allow-navigation href="http://localhost:8100/*"/>
+  <allow-navigation href="http://192.168.0.47:8100/*"/>
+  <allow-navigation href="https://www.youtube.com/*"/>
+  <allow-navigation href="https://*.ytimg.com/*"/>
+  <allow-navigation href="http://*/*"/>
   <preference name="webviewbounce" value="false"/>
   <preference name="UIWebViewBounce" value="false"/>
   <preference name="DisallowOverscroll" value="true"/>
@@ -28,6 +35,7 @@
   <plugin name="ionic-plugin-keyboard" spec="~2.2.1"/>
   <plugin name="cordova-plugin-http" spec="https://github.com/HillsideHoldings/cordova-HTTP"/>
   <plugin name="de.fastr.phonegap.plugins.md5chksum" spec="https://github.com/fastrde/phonegap-md5.git"/>
+  <plugin name="cordova-plugin-file-transfer" spec="~1.6.0"/>
   <platform name="android">
     <icon density="ldpi" src="resources/android/icon/drawable-ldpi-icon.png"/>
     <icon density="mdpi" src="resources/android/icon/drawable-mdpi-icon.png"/>
